@@ -100,6 +100,7 @@ def default_state():
         "trade": None,
         "adjust_call_sent": False,
         "adjust_put_sent": False,
+        "holiday_alert_sent": False,
     }
 
 
@@ -252,12 +253,18 @@ def run_cycle():
     if data.get("is_empty"):
         if 10 <= now_ist.hour < 16:
             # During market hours, but no data means market is closed today
-            log.info("Holiday detected! Shutting down container to save Railway credits.")
-            send_telegram(
-                "😴 <b>Market Holiday Detected</b>\n"
-                "No data found today. The container has been <b>SHUT DOWN</b> to save credits.\n\n"
-                "⚠️ <b>IMPORTANT:</b> You MUST manually restart the bot on Railway tomorrow morning!"
-            )
+            if not state.get("holiday_alert_sent"):
+                log.info("Holiday detected! Shutting down container to save Railway credits.")
+                send_telegram(
+                    "😴 <b>Market Holiday Detected</b>\n"
+                    "No data found today. The container has been <b>SHUT DOWN</b> to save credits.\n\n"
+                    "⚠️ <b>IMPORTANT:</b> You MUST manually restart the bot on Railway tomorrow morning!"
+                )
+                state["holiday_alert_sent"] = True
+                save_state(state)
+            else:
+                log.info("Holiday detected! Container shutting down (alert already sent today).")
+                
             import sys
             sys.exit(0)
 
