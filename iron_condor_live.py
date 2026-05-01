@@ -29,7 +29,9 @@ GAP_LIMIT     = 0.007
 RANGE_LIMIT   = 0.004
 ADJUST_ZONE   = 100
 
-STATE_FILE    = Path("/tmp/trade_state.json")   # /tmp works on Render
+DATA_DIR      = Path(os.getenv("DATA_DIR", "/tmp"))   # Map this to a Railway Volume for persistence
+STATE_FILE    = DATA_DIR / "trade_state.json"
+HISTORY_FILE  = DATA_DIR / "trade_history.json"
 IST           = pytz.timezone("Asia/Kolkata")
 
 # ─────────────────────────────────────────────
@@ -63,6 +65,32 @@ def load_state():
 def save_state(state):
     with open(STATE_FILE, "w") as f:
         json.dump(state, f, indent=2)
+    append_to_history_and_prune(state)
+
+def load_history():
+    if HISTORY_FILE.exists():
+        try:
+            with open(HISTORY_FILE) as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return []
+
+def save_history(history_list):
+    with open(HISTORY_FILE, "w") as f:
+        json.dump(history_list, f, indent=2)
+
+def append_to_history_and_prune(state):
+    history = load_history()
+    today = state.get("date")
+    # Remove existing entry for today if any (so we update it instead of duplicate)
+    history = [h for h in history if h.get("date") != today]
+    history.append(state)
+    # Prune: keep only the last 7 entries (7 working days)
+    if len(history) > 7:
+        history = history[-7:]
+    save_history(history)
+
 
 
 def default_state():
@@ -119,6 +147,7 @@ def get_nifty_data():
             "prev_close": prev_close,
             "today_open": today_open,
             "intraday_range_pct": range_pct,
+            "is_empty": intraday.empty,
         }
     except Exception as e:
         log.error(f"NIFTY fetch failed: {e}")
@@ -218,6 +247,20 @@ def run_cycle():
     data = get_nifty_data()
     if data is None:
         return
+        
+    # ── HOLIDAY SHUTDOWN LOGIC ──
+    if data.get("is_empty"):
+        if 10 <= now_ist.hour < 16:
+            # During market hours, but no data means market is closed today
+            log.info("Holiday detected! Shutting down container to save Railway credits.")
+            send_telegram(
+                "😴 <b>Market Holiday Detected</b>\n"
+                "No data found today. The container has been <b>SHUT DOWN</b> to save credits.\n\n"
+                "⚠️ <b>IMPORTANT:</b> You MUST manually restart the bot on Railway tomorrow morning!"
+            )
+            import sys
+            sys.exit(0)
+
     spot = data["spot"]
     vix  = get_vix()
     log.info(f"Spot: {spot:.2f} | VIX: {vix}")
