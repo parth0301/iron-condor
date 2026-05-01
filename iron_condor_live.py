@@ -254,12 +254,12 @@ def run_cycle():
         if 10 <= now_ist.hour < 16:
             if not state.get("holiday_alert_sent"):
                 log.info("Holiday detected — sending one-time alert and sleeping until tomorrow.")
-                send_telegram("😴 <b>Market Holiday Detected</b>\nNo data today. Bot is sleeping until tomorrow 9:55 AM.")
+                send_telegram("😴 <b>Market Holiday Detected</b>\nNo data today. Bot is sleeping until tomorrow 9:15 AM.")
                 state["holiday_alert_sent"] = True
                 save_state(state)
 
-            # Sleep until next day 9:55 AM IST
-            tomorrow = (now_ist + datetime.timedelta(days=1)).replace(hour=9, minute=55, second=0, microsecond=0)
+            # Sleep until next day 9:15 AM IST
+            tomorrow = (now_ist + datetime.timedelta(days=1)).replace(hour=9, minute=15, second=0, microsecond=0)
             sleep_sec = max((tomorrow - now_ist).total_seconds(), 60)
             log.info(f"Sleeping {sleep_sec:.0f}s until {tomorrow.strftime('%Y-%m-%d %H:%M')} IST")
             time.sleep(sleep_sec)
