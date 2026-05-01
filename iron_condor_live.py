@@ -323,11 +323,11 @@ def run_cycle():
 # ENTRY POINT
 # ─────────────────────────────────────────────
 if __name__ == "__main__":
-    log.info("Iron Condor bot starting...")
-    send_telegram("🟢 <b>Iron Condor Bot STARTED</b>\nMonitoring NIFTY every 5 minutes.")
+    log.info("Iron Condor bot starting. Scanning NIFTY every 30 seconds.")
+    # Removed the startup Telegram message to prevent spam on server restarts
     while True:
         try:
             run_cycle()
         except Exception as e:
             log.exception(f"Cycle error: {e}")
-        time.sleep(300)
+        time.sleep(30)
