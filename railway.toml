@@ -3,4 +3,4 @@ builder = "nixpacks"
 
 [deploy]
 startCommand = "python iron_condor_live.py"
-restartPolicyType = "on_failure"
+restartPolicyType = "always"

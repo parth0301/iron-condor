@@ -249,24 +249,21 @@ def run_cycle():
     if data is None:
         return
         
-    # ── HOLIDAY SHUTDOWN LOGIC ──
+    # ── HOLIDAY / NO-DATA LOGIC ──
     if data.get("is_empty"):
         if 10 <= now_ist.hour < 16:
-            # During market hours, but no data means market is closed today
             if not state.get("holiday_alert_sent"):
-                log.info("Holiday detected! Shutting down container to save Railway credits.")
-                send_telegram(
-                    "😴 <b>Market Holiday Detected</b>\n"
-                    "No data found today. The container has been <b>SHUT DOWN</b> to save credits.\n\n"
-                    "⚠️ <b>IMPORTANT:</b> You MUST manually restart the bot on Railway tomorrow morning!"
-                )
+                log.info("Holiday detected — sending one-time alert and sleeping until tomorrow.")
+                send_telegram("😴 <b>Market Holiday Detected</b>\nNo data today. Bot is sleeping until tomorrow 9:55 AM.")
                 state["holiday_alert_sent"] = True
                 save_state(state)
-            else:
-                log.info("Holiday detected! Container shutting down (alert already sent today).")
-                
-            import sys
-            sys.exit(0)
+
+            # Sleep until next day 9:55 AM IST
+            tomorrow = (now_ist + datetime.timedelta(days=1)).replace(hour=9, minute=55, second=0, microsecond=0)
+            sleep_sec = max((tomorrow - now_ist).total_seconds(), 60)
+            log.info(f"Sleeping {sleep_sec:.0f}s until {tomorrow.strftime('%Y-%m-%d %H:%M')} IST")
+            time.sleep(sleep_sec)
+            return
 
     spot = data["spot"]
     vix  = get_vix()
