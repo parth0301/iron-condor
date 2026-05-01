@@ -16,7 +16,7 @@ from pathlib import Path
 # ─────────────────────────────────────────────
 # CONFIG
 # ─────────────────────────────────────────────
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8620794458:ААHyb0e5Wa7LjHqPjbFIhK4zqaannХpR5Pc")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8620794458:AAHyb0e5Wa7LjHqPjbFIhK4zqaannXpR5Pc")
 TELEGRAM_CHAT_ID   = os.getenv("TELEGRAM_CHAT_ID",   "970123391")
 
 NIFTY_TICKER  = "^NSEI"
