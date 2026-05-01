@@ -16,7 +16,7 @@ from pathlib import Path
 # ─────────────────────────────────────────────
 # CONFIG
 # ─────────────────────────────────────────────
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8620794458:AAHyb0e5Wa7LjHqPjbFIhK4zqaannXpR5Pc")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8620794458:AAFo777QtfiMWRGyYob5h5xBS2r2lon94K8")
 TELEGRAM_CHAT_ID   = os.getenv("TELEGRAM_CHAT_ID",   "970123391")
 
 NIFTY_TICKER  = "^NSEI"
@@ -106,12 +106,13 @@ def get_nifty_data():
         intraday  = ticker.history(period="1d", interval="5m")
         now_ist   = datetime.datetime.now(IST)
         thirty_ago = now_ist - datetime.timedelta(minutes=30)
-        intraday.index = intraday.index.tz_convert(IST)
-        recent    = intraday[intraday.index >= thirty_ago]
-
+        
         range_pct = 0.0
-        if len(recent) > 0:
-            range_pct = (float(recent["High"].max()) - float(recent["Low"].min())) / spot
+        if not intraday.empty:
+            intraday.index = intraday.index.tz_convert(IST)
+            recent    = intraday[intraday.index >= thirty_ago]
+            if len(recent) > 0:
+                range_pct = (float(recent["High"].max()) - float(recent["Low"].min())) / spot
 
         return {
             "spot": spot,
